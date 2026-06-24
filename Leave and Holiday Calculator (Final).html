@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<!-- saved from url=(0067)file:///C:/Users/liezel.mayor/Downloads/wbs_holiday_updater_36.html -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leave and Holiday Calculator</title>
+<link href="./Leave and Holiday Calculator (Final)_files/css2" rel="stylesheet">
+<script src="./Leave and Holiday Calculator (Final)_files/xlsx.full.min.js.download"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --purple:#5b21b6;--purple-mid:#6d28d9;--purple-pale:#f5f3ff;
+  --bg:#f6f5fb;--surface:#fff;--border:#e5e7eb;
+  --text:#1e1e2e;--muted:#6b7280;
+  --green:#16a34a;--green-pale:#f0fdf4;
+  --red:#dc2626;--red-pale:#fef2f2;
+  --radius:12px;
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:2rem 1rem;}
+.wrap{max-width:980px;margin:0 auto;}
+
+.header{background:#3b1565;border-radius:var(--radius);padding:22px 28px;margin-bottom:20px;display:flex;align-items:center;gap:16px;}
+.header-icon{width:44px;height:44px;background:rgba(255,255,255,.15);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.header h1{font-size:18px;font-weight:700;color:#fff;margin-bottom:3px;}
+.header p{font-size:12px;color:rgba(255,255,255,.55);}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px;margin-bottom:16px;}
+.card-title{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+
+.period-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
+.field label{display:block;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;}
+.field select,.field input{width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;color:var(--text);background:#fff;outline:none;transition:border-color .15s;}
+.field select:focus,.field input:focus{border-color:var(--purple);}
+
+.loc-filter{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);}
+.loc-check{display:flex;align-items:center;gap:7px;padding:6px 14px;border:1.5px solid var(--border);border-radius:7px;cursor:pointer;font-size:13px;font-weight:500;transition:all .15s;user-select:none;}
+.loc-check input{width:14px;height:14px;cursor:pointer;accent-color:var(--purple);}
+.loc-check.ph-on{border-color:#2563eb;background:#eff6ff;color:#1d4ed8;}
+.loc-check.sg-on{border-color:#16a34a;background:#f0fdf4;color:#15803d;}
+.loc-check.in-on{border-color:#ca8a04;background:#fefce8;color:#854d0e;}
+
+.hol-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:12px;}
+.hol-table th{background:#f8f7fc;color:var(--muted);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:7px 12px;text-align:left;border-bottom:1px solid var(--border);}
+.hol-table td{padding:8px 12px;border-bottom:1px solid var(--border);color:var(--text);}
+.hol-table tr:last-child td{border-bottom:none;}
+
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;}
+.b-ph{background:#dbeafe;color:#1d4ed8;}
+.b-sg{background:#dcfce7;color:#15803d;}
+.b-in{background:#fef9c3;color:#854d0e;}
+.b-p1{background:#ede9fe;color:#5b21b6;}
+.b-p2{background:#fdf4ff;color:#86198f;}
+.b-wknd{background:#f3f4f6;color:#9ca3af;}
+.b-match{background:#dcfce7;color:#15803d;}
+.b-nomatch{background:#f3f4f6;color:#9ca3af;}
+
+.upload-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.upload-zone{border:2px dashed var(--border);border-radius:10px;padding:24px 16px;text-align:center;cursor:pointer;transition:all .15s;background:#fafafa;}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--purple);background:var(--purple-pale);}
+.upload-zone.loaded{border-color:var(--green);background:var(--green-pale);border-style:solid;}
+.upload-zone .uz-icon{font-size:28px;margin-bottom:8px;}
+.upload-zone .uz-name{font-size:12px;font-weight:600;color:var(--text);margin-bottom:2px;}
+.upload-zone .uz-sub{font-size:11px;color:var(--muted);}
+.upload-zone input[type=file]{display:none;}
+
+.status-box{border-radius:8px;padding:11px 14px;font-size:13px;display:none;}
+.status-box.info{background:#eff6ff;color:#1e40af;border:1px solid #bfdbfe;}
+.status-box.success{background:var(--green-pale);color:#15803d;border:1px solid #bbf7d0;}
+.status-box.error{background:var(--red-pale);color:var(--red);border:1px solid #fecaca;}
+
+.btn{padding:9px 20px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none;font-family:inherit;transition:all .15s;}
+.btn-primary{background:var(--purple);color:#fff;}
+.btn-primary:hover:not(:disabled){background:var(--purple-mid);}
+.btn-primary:disabled{background:#c4b5f4;cursor:not-allowed;}
+.btn-outline{background:none;border:1.5px solid var(--border);color:var(--muted);}
+.btn-outline:hover{border-color:var(--purple);color:var(--purple);}
+.btn-row{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;align-items:center;}
+
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:16px;}
+.stat{background:#f8f7fc;border-radius:8px;padding:12px 14px;}
+.stat .sl{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px;}
+.stat .sv{font-size:22px;font-weight:700;color:var(--text);}
+
+.filter-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+.filter-btn{padding:4px 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;border:1.5px solid var(--border);background:#fff;color:var(--muted);transition:all .15s;}
+.filter-btn.active{border-color:var(--purple);background:var(--purple-pale);color:var(--purple);}
+
+.table-wrap{overflow-x:auto;border-radius:8px;border:1px solid var(--border);}
+table.ptable{width:100%;border-collapse:collapse;font-size:12px;min-width:750px;}
+table.ptable thead th{background:#f8f7fc;color:var(--muted);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:8px 10px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;}
+table.ptable tbody td{padding:8px 10px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle;}
+table.ptable tbody tr:last-child td{border-bottom:none;}
+table.ptable tbody tr:hover{background:#fafafa;}
+.td-updated{background:#dcfce7 !important;color:#15803d;font-weight:600;}
+.td-leave{color:#7c3aed;font-weight:600;}
+.td-noloc{background:#fef9c3 !important;color:#854d0e;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="header">
+  <div class="header-icon">📊</div>
+  <div>
+    <h1>Leave and Holiday Calculator</h1>
+    <p>Auto-fills Public Holidays · Computes Leave hours from Leave Extract · Matches by Enterprise ID</p>
+  </div>
+</div>
+
+<!-- STEP 1 -->
+<div class="card">
+  <div class="card-title">Step 1 — Select Month &amp; Year</div>
+  <div class="period-row">
+    <div class="field">
+      <label>Month</label>
+      <select id="selMonth">
+        <option value="0">January</option><option value="1">February</option><option value="2">March</option>
+        <option value="3">April</option><option value="4">May</option><option value="5">June</option>
+        <option value="6">July</option><option value="7">August</option><option value="8">September</option>
+        <option value="9">October</option><option value="10">November</option><option value="11">December</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Year</label>
+      <select id="selYear">
+        <option value="2025">2025</option><option value="2026" selected="">2026</option><option value="2027">2027</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Location filter -->
+  <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Filter Locations to Update</div>
+  <div class="loc-filter">
+    <label class="loc-check ph-on" id="lbl-ph"><input type="checkbox" id="chk-ph" checked="" onchange="toggleLoc(&#39;ph&#39;)"> 🇵🇭 Philippines</label>
+    <label class="loc-check sg-on" id="lbl-sg"><input type="checkbox" id="chk-sg" checked="" onchange="toggleLoc(&#39;sg&#39;)"> 🇸🇬 Singapore</label>
+    <label class="loc-check in-on" id="lbl-in"><input type="checkbox" id="chk-in" checked="" onchange="toggleLoc(&#39;in&#39;)"> 🇮🇳 India</label>
+  </div>
+
+  <!-- India holiday optional toggle -->
+  <div id="india-hol-option" style="margin-top:10px;padding:10px 14px;background:#fefce8;border:1.5px solid #ca8a04;border-radius:8px;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+    <div>
+      <div style="font-size:12px;font-weight:600;color:#854d0e;">🇮🇳 India — Public Holidays Optional</div>
+      <div style="font-size:11px;color:#a16207;margin-top:2px;">Holidays in India are discretionary. Choose whether to deduct them.</div>
+    </div>
+    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;color:#854d0e;white-space:nowrap;">
+      <input type="checkbox" id="chk-in-hol" checked="" style="width:15px;height:15px;cursor:pointer;accent-color:#ca8a04;">
+      Compute India holidays
+    </label>
+  </div>
+
+  <!-- Holiday preview -->
+  <div id="hol-preview"><table class="hol-table" style="margin-top:12px;">
+    <thead><tr><th>Date</th><th>Holiday</th><th>Country</th><th>Status</th></tr></thead>
+    <tbody><tr>
+      <td>Jun 1</td>
+      <td>Vesak Day (in-lieu)</td>
+      <td><span class="badge b-sg">Singapore</span></td>
+      <td><span class="badge b-p1">P1 — deducted</span></td>
+    </tr><tr>
+      <td>Jun 8</td>
+      <td>Id-ul-Adha</td>
+      <td><span class="badge b-in">India</span></td>
+      <td><span class="badge b-p1">P1 — deducted</span></td>
+    </tr><tr>
+      <td>Jun 12</td>
+      <td>Independence Day</td>
+      <td><span class="badge b-ph">Philippines</span></td>
+      <td><span class="badge b-p1">P1 — deducted</span></td>
+    </tr></tbody>
+  </table></div>
+</div>
+
+<!-- STEP 2 -->
+<div class="card">
+  <div class="card-title">Step 2 — Upload Files</div>
+  <div class="upload-grid">
+    <div>
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">File 1 — WBS Charging Template</div>
+      <div class="upload-zone loaded" id="dz1" onclick="document.getElementById(&#39;fi1&#39;).click()">
+        <div class="uz-icon" id="icon1">✅</div>
+        <div class="uz-name" id="name1">WBS Charging App Template - For Claude.xlsx</div>
+        <div class="uz-sub" id="sub1">8 sheet(s) — LINKS, 1st-2nd steps &gt;, Paste, next steps &gt;, Transpose, Template, Sheet1, Success Story</div>
+      </div>
+      <input type="file" id="fi1" accept=".xlsx,.xlsm,.xls">
+    </div>
+    <div>
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">File 2 — MyTE Leave Extract</div>
+      <div class="upload-zone loaded" id="dz2" onclick="document.getElementById(&#39;fi2&#39;).click()">
+        <div class="uz-icon" id="icon2">✅</div>
+        <div class="uz-name" id="name2">Leave Tool Extract for Claude.xlsx</div>
+        <div class="uz-sub" id="sub2">1 sheet(s) — Leace Extract (1)</div>
+      </div>
+      <input type="file" id="fi2" accept=".xlsx,.xlsm,.xls">
+    </div>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-primary" id="processBtn" onclick="processFiles()">⚙ Process Files</button>
+  </div>
+  <div class="status-box success" id="statusBox" style="margin-top: 12px; display: block;">✅ Done! 82 rows updated · 17 MyTE matches · 0 no location · 0 filtered</div>
+</div>
+
+<!-- STEP 3 -->
+<div class="card" id="previewCard" style="display: block;">
+  <div class="card-title">Step 3 — Preview &amp; Download</div>
+  <div class="summary-grid" id="summaryGrid">
+    <div class="stat"><div class="sl">Total Rows</div><div class="sv">82</div></div>
+    <div class="stat"><div class="sl">PH Updated</div><div class="sv" style="color:var(--green)">82</div></div>
+    <div class="stat"><div class="sl">MyTE Matched</div><div class="sv" style="color:var(--purple)">17</div></div>
+    <div class="stat"><div class="sl">Filtered Out</div><div class="sv" style="color:#2563eb">0</div></div>
+    <div class="stat"><div class="sl">No Location</div><div class="sv" style="color:#ca8a04">0</div></div>
+    <div class="stat"><div class="sl">Period</div><div class="sv" style="font-size:14px;">Jun 2026</div></div></div>
+  <div class="filter-bar" id="filterBar"><button class="filter-btn active" onclick="renderPreview(&#39;all&#39;)">All</button><button class="filter-btn" onclick="renderPreview(&#39;ph&#39;)">🇵🇭 PH</button><button class="filter-btn" onclick="renderPreview(&#39;sg&#39;)">🇸🇬 SG</button><button class="filter-btn" onclick="renderPreview(&#39;in&#39;)">🇮🇳 IN</button></div>
+  <div class="table-wrap">
+    <table class="ptable" id="previewTable">
+    <thead><tr><th>Enterprise ID</th><th>Location</th><th>Leave Hours (Leave Extract)</th><th>Public Holiday</th><th>Leave Date &amp; Type</th></tr></thead>
+    <tbody><tr><td>a.hebbali</td><td>India</td><td>—</td><td class="td-updated">9</td><td class="td-dates">—</td></tr><tr><td>a.mohamed.zaid</td><td>Singapore</td><td>—</td><td class="td-updated">8</td><td class="td-dates">—</td></tr><tr><td>abhishek.n.nair</td><td>Singapore</td><td>—</td><td class="td-updated">8</td><td class="td-dates">—</td></tr><tr><td>aditya.cf.singh</td><td>India</td><td>—</td><td class="td-updated">9</td><td class="td-dates">—</td></tr><tr><td>aishah.midros</td><td>Singapore</td><td>—</td><td class="td-updated">8</td><td class="td-dates">—</td></tr><tr><td>akshaya.b.natarajan</td><td>Singapore</td><td>—</td><td class="td-updated">8</td><td class="td-dates">—</td></tr><tr><td>amit.vijapur</td><td>Singapore</td><td>—</td><td class="td-updated">8</td><td class="td-dates">—</td></tr><tr><td>angali.harshini</td><td>India</td><td>—</td><td class="td-updated">9</td><td class="td-dates">—</td></tr><tr><td>appalla.swarnanjali</td><td>India</td><td>—</td><td class="td-updated">9</td><td class="td-dates">—</td></tr><tr><td>arghya.maiti</td><td>India</td><td>—</td><td class="td-updated">9</td><td class="td-dates">—</td></tr><tr><td>arpita.salotgi</td><td>Singapore</td><td>—</td><td class="td-updated">8</td><td class="td-dates">—</td></tr><tr><td>ashika.lakshmipathi</td><td>India</td><td><span class="td-leave">9</span></td><td class="td-updated">9</td><td class="td-dates"><div style="font-size:10px;color:var(--muted);margin-top:2px;">04-May-26 - Annual Leave</div></td></tr><tr><td>ashvin.d.selva.dorai</td><td>Singapore</td><td><span class="td-leave">40</span></td><td class="td-updated">8</td><td class="td-dates"><div style="font-size:10px;color:var(--muted);margin-top:2px;">04-May-26 to 08-May-26 - Sick Leave</div></td></tr><tr><td>blessing.sam</td><td>India</td><td><span class="td-leave">9</span></td><td class="td-updated">9</td><td class="td-dates"><div style="font-size:10px;color:var(--muted);margin-top:2px;">11-May-26 - Annual Leave</div></td></tr><tr><td>b.yap</td><td>Singapore</td><td>—</td><td class="td-updated">8</td><td class="td-dates">—</td></tr><tr><td>charishma.velu</td><td>India</td><td>—</td><td class="td-updated">9</td><td class="td-dates">—</td></tr><tr><td>cecille.c.jose</td><td>Singapore</td><td>—</td><td class="td-updated">8</td><td class="td-dates">—</td></tr><tr><td>chase.lim</td><td>Singapore</td><td>—</td><td class="td-updated">8</td><td class="td-dates">—</td></tr><tr><td>d.reddy.gundlapalli</td><td>India</td><td>—</td><td class="td-updated">9</td><td class="td-dates">—</td></tr><tr><td>darshan.navali</td><td>India</td><td>—</td><td class="td-updated">9</td><td class="td-dates">—</td></tr><tr><td>durga.b.chakali</td><td>India</td><td>—</td><td class="td-updated">9</td><td class="td-dates">—</td></tr><tr><td>cui.hao</td><td>Singapore</td><td>—</td><td class="td-updated">8</td><td class="td-dates">—</td></tr><tr><td>e.foo</td><td>Singapore</td><td><span class="td-leave">8</span></td><td class="td-updated">8</td><td class="td-dates"><div style="font-size:10px;color:var(--muted);margin-top:2px;">04-May-26 - Annual Leave</div></td></tr><tr><td>edison.xinghan.zhong</td><td>Singapore</td><td>—</td><td class="td-updated">8</td><td class="td-dates">—</td></tr><tr><td>h.bin.mohd.dohlan</td><td>Singapore</td><td>—</td><td class="td-updated">8</td><td class="td-dates">—</td></tr><tr><td>hao.nan.liao</td><td>Singapore</td><td><span class="td-leave">8</span></td><td class="td-updated">8</td><td class="td-dates"><div style="font-size:10px;color:var(--muted);margin-top:2px;">05-May-26 - Annual Leave</div></td></tr><tr><td>jia.wen.png</td><td>Singapore</td><td>—</td><td class="td-updated">8</td><td class="td-dates">—</td></tr><tr><td>jignesh.ruparel</td><td>India</td><td>—</td><td class="td-updated">9</td><td class="td-dates">—</td></tr><tr><td>jian.sheng.goh</td><td>Singapore</td><td><span class="td-leave">8</span></td><td class="td-updated">8</td><td class="td-dates"><div style="font-size:10px;color:var(--muted);margin-top:2px;">04-May-26 - Annual Leave</div></td></tr><tr><td>jyothi.konadavar</td><td>India</td><td>—</td><td class="td-updated">9</td><td class="td-dates">—</td></tr><tr><td>jing.yi.yeo</td><td>Singapore</td><td>—</td><td class="td-updated">8</td><td class="td-dates">—</td></tr><tr><td>kapa.bhanu.chowdary</td><td>India</td><td>—</td><td class="td-updated">9</td><td class="td-dates">—</td></tr><tr><td>karthik.b.sivakumar</td><td>India</td><td>—</td><td class="td-updated">9</td><td class="td-dates">—</td></tr><tr><td>keerthika.battula</td><td>India</td><td>—</td><td class="td-updated">9</td><td class="td-dates">—</td></tr><tr><td>kai.ting.ng</td><td>Singapore</td><td><span class="td-leave">24</span></td><td class="td-updated">8</td><td class="td-dates"><div style="font-size:10px;color:var(--muted);margin-top:2px;">04-May-26 to 06-May-26 - Annual Leave</div></td></tr><tr><td>kelvin.lee</td><td>Singapore</td><td>—</td><td class="td-updated">8</td><td class="td-dates">—</td></tr><tr><td>kendrick.a.lee</td><td>Singapore</td><td>—</td><td class="td-updated">8</td><td class="td-dates">—</td></tr><tr><td>kin.seong.wong</td><td>Singapore</td><td>—</td><td class="td-updated">8</td><td class="td-dates">—</td></tr><tr><td>leenarani.samal</td><td>India</td><td>—</td><td class="td-updated">9</td><td class="td-dates">—</td></tr><tr><td>l.s.lim</td><td>Singapore</td><td>—</td><td class="td-updated">8</td><td class="td-dates">—</td></tr><tr><td>li.xuan.wong</td><td>Singapore</td><td>—</td><td class="td-updated">8</td><td class="td-dates">—</td></tr><tr><td>liezel.mayor</td><td>Philippines</td><td>—</td><td class="td-updated">9</td><td class="td-dates">—</td></tr><tr><td>liang.ang.yee</td><td>Singapore</td><td><span class="td-leave">8</span></td><td class="td-updated">8</td><td class="td-dates"><div style="font-size:10px;color:var(--muted);margin-top:2px;">06-May-26 - Annual Leave</div></td></tr><tr><td>lipsita.sahoo</td><td>India</td><td><span class="td-leave">18</span></td><td class="td-updated">9</td><td class="td-dates"><div style="font-size:10px;color:var(--muted);margin-top:2px;">06-May-26 to 07-May-26 - Annual Leave</div></td></tr><tr><td>linghui.ruan</td><td>Singapore</td><td>—</td><td class="td-updated">8</td><td class="td-dates">—</td></tr><tr><td>m.bandakkanavar</td><td>India</td><td>—</td><td class="td-updated">9</td><td class="td-dates">—</td></tr><tr><td>manisha.n.palmur</td><td>India</td><td>—</td><td class="td-updated">9</td><td class="td-dates">—</td></tr><tr><td>loganathan.alagesan</td><td>Singapore</td><td>—</td><td class="td-updated">8</td><td class="td-dates">—</td></tr><tr><td>marc.ciev.capulong</td><td>Singapore</td><td>—</td><td class="td-updated">8</td><td class="td-dates">—</td></tr><tr><td>molaka.sonalika</td><td>India</td><td><span class="td-leave">18</span></td><td class="td-updated">9</td><td class="td-dates"><div style="font-size:10px;color:var(--muted);margin-top:2px;">08-May-26 - Annual Leave</div><div style="font-size:10px;color:var(--muted);margin-top:2px;">11-May-26 - Annual Leave</div></td></tr><tr><td>min.y.seet</td><td>Singapore</td><td>—</td><td class="td-updated">8</td><td class="td-dates">—</td></tr><tr><td>neha.hari</td><td>India</td><td>—</td><td class="td-updated">9</td><td class="td-dates">—</td></tr><tr><td>naveen.n.singh</td><td>Singapore</td><td><span class="td-leave">16</span></td><td class="td-updated">8</td><td class="td-dates"><div style="font-size:10px;color:var(--muted);margin-top:2px;">07-May-26 to 08-May-26 - Annual Leave</div></td></tr><tr><td>p.madhuri.deepika</td><td>India</td><td>—</td><td class="td-updated">9</td><td class="td-dates">—</td></tr><tr><td>patarpilli.parvathi</td><td>India</td><td>—</td><td class="td-updated">9</td><td class="td-dates">—</td></tr><tr><td>prasun.a.sharma</td><td>India</td><td>—</td><td class="td-updated">9</td><td class="td-dates">—</td></tr><tr><td>pujitha.mandapati</td><td>India</td><td>—</td><td class="td-updated">9</td><td class="td-dates">—</td></tr><tr><td>rakshitha.r.c</td><td>India</td><td>—</td><td class="td-updated">9</td><td class="td-dates">—</td></tr><tr><td>ramakant.gupta</td><td>India</td><td>—</td><td class="td-updated">9</td><td class="td-dates">—</td></tr><tr><td>ravikumar.a.perumal</td><td>India</td><td><span class="td-leave">9</span></td><td class="td-updated">9</td><td class="td-dates"><div style="font-size:10px;color:var(--muted);margin-top:2px;">04-May-26 - Training Leave</div></td></tr><tr><td>ritesh.ca.kumar</td><td>India</td><td>—</td><td class="td-updated">9</td><td class="td-dates">—</td></tr><tr><td>nivetha.chithambaram</td><td>Singapore</td><td><span class="td-leave">8</span></td><td class="td-updated">8</td><td class="td-dates"><div style="font-size:10px;color:var(--muted);margin-top:2px;">13-May-26 - Annual Leave</div></td></tr><tr><td>ryan.a.chua</td><td>Singapore</td><td>—</td><td class="td-updated">8</td><td class="td-dates">—</td></tr><tr><td>s.g.duraisamy</td><td>India</td><td>—</td><td class="td-updated">9</td><td class="td-dates">—</td></tr><tr><td>ryan.zheng.d.kaw</td><td>Singapore</td><td>—</td><td class="td-updated">8</td><td class="td-dates">—</td></tr><tr><td>s.koh</td><td>Singapore</td><td><span class="td-leave">24</span></td><td class="td-updated">8</td><td class="td-dates"><div style="font-size:10px;color:var(--muted);margin-top:2px;">13-May-26 to 15-May-26 - Reservist</div></td></tr><tr><td>shalini.cb</td><td>India</td><td>—</td><td class="td-updated">9</td><td class="td-dates">—</td></tr><tr><td>sai.k.dorisetti</td><td>Singapore</td><td>—</td><td class="td-updated">8</td><td class="td-dates">—</td></tr><tr><td>shanice.koh</td><td>Singapore</td><td>—</td><td class="td-updated">8</td><td class="td-dates">—</td></tr><tr><td>shinta.karolina.bek</td><td>Singapore</td><td>—</td><td class="td-updated">8</td><td class="td-dates">—</td></tr><tr><td>sowjanya.yalamuru</td><td>India</td><td>—</td><td class="td-updated">9</td><td class="td-dates">—</td></tr><tr><td>sonia.y.tan</td><td>Singapore</td><td>—</td><td class="td-updated">8</td><td class="td-dates">—</td></tr><tr><td>stephen.teo.wei.song</td><td>Singapore</td><td><span class="td-leave">8</span></td><td class="td-updated">8</td><td class="td-dates"><div style="font-size:10px;color:var(--muted);margin-top:2px;">05-May-26 - Caregiver Leave</div></td></tr><tr><td>thanuja.ramegowda</td><td>India</td><td>—</td><td class="td-updated">9</td><td class="td-dates">—</td></tr><tr><td>thamkrish.sm</td><td>Singapore</td><td>—</td><td class="td-updated">8</td><td class="td-dates">—</td></tr><tr><td>v.mahalinge.gowda</td><td>India</td><td>—</td><td class="td-updated">9</td><td class="td-dates">—</td></tr><tr><td>vikram.kumar.jha</td><td>India</td><td>—</td><td class="td-updated">9</td><td class="td-dates">—</td></tr><tr><td>y.raj.singh</td><td>India</td><td>—</td><td class="td-updated">9</td><td class="td-dates">—</td></tr><tr><td>toh.jia.jie</td><td>Singapore</td><td>—</td><td class="td-updated">8</td><td class="td-dates">—</td></tr><tr><td>yan.xun.lee</td><td>Singapore</td><td><span class="td-leave">40</span></td><td class="td-updated">8</td><td class="td-dates"><div style="font-size:10px;color:var(--muted);margin-top:2px;">11-May-26 to 15-May-26 - Annual Leave</div></td></tr><tr><td>yong.zhuo.yap</td><td>Singapore</td><td>—</td><td class="td-updated">8</td><td class="td-dates">—</td></tr><tr><td>zhen.sen.ong</td><td>Singapore</td><td><span class="td-leave">8</span></td><td class="td-updated">8</td><td class="td-dates"><div style="font-size:10px;color:var(--muted);margin-top:2px;">07-May-26 - Annual Leave</div></td></tr></tbody></table>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="downloadFile()">⬇ Download Updated WBS File</button>
+    <button class="btn btn-outline" onclick="resetAll()">Reset</button>
+  </div>
+</div>
+
+</div>
+<script>
+// ── HOLIDAYS ─────────────────────────────────────────────────────────────────
+const HOLIDAYS = {
+  ph:{
+    2025:[[0,1,"New Year's Day"],[2,31,"Eid'l Fitr"],[3,9,"Araw ng Kagitingan"],[3,17,"Maundy Thursday"],[3,18,"Good Friday"],[4,1,"Labor Day"],[5,6,"Eid'l Adha"],[5,12,"Independence Day"],[7,25,"National Heroes Day"],[10,30,"Bonifacio Day"],[11,25,"Christmas Day"],[11,30,"Rizal Day"]],
+    2026:[[0,1,"New Year's Day"],[2,20,"Eid'l Fitr"],[3,2,"Maundy Thursday"],[3,3,"Good Friday"],[3,9,"Araw ng Kagitingan"],[4,1,"Labor Day"],[4,27,"Eid'l Adha"],[5,12,"Independence Day"],[7,31,"National Heroes Day"],[10,30,"Bonifacio Day"],[11,25,"Christmas Day"],[11,30,"Rizal Day"]],
+    2027:[[0,1,"New Year's Day"],[2,10,"Eid'l Fitr"],[3,1,"Maundy Thursday"],[3,2,"Good Friday"],[3,9,"Araw ng Kagitingan"],[4,1,"Labor Day"],[4,17,"Eid'l Adha"],[5,12,"Independence Day"],[7,30,"National Heroes Day"],[10,30,"Bonifacio Day"],[11,25,"Christmas Day"],[11,30,"Rizal Day"]]
+  },
+  sg:{
+    2025:[[0,1,"New Year's Day"],[1,28,"Chinese New Year"],[1,29,"Chinese New Year"],[3,18,"Good Friday"],[4,1,"Labour Day"],[4,12,"Vesak Day"],[5,2,"Hari Raya Puasa"],[5,7,"Hari Raya Haji"],[7,9,"National Day"],[10,20,"Deepavali"],[11,25,"Christmas Day"]],
+    2026:[[0,1,"New Year's Day"],[1,17,"Chinese New Year"],[1,18,"Chinese New Year"],[3,3,"Good Friday"],[4,1,"Labour Day"],[4,27,"Hari Raya Haji"],[5,1,"Vesak Day (in-lieu)"],[7,10,"National Day (in-lieu)"],[11,9,"Deepavali (in-lieu)"],[11,25,"Christmas Day"]],
+    2027:[[0,1,"New Year's Day"],[1,6,"Chinese New Year"],[1,7,"Chinese New Year"],[2,10,"Hari Raya Puasa"],[3,26,"Good Friday"],[4,1,"Labour Day"],[4,21,"Vesak Day"],[5,17,"Hari Raya Haji"],[7,9,"National Day"],[10,29,"Deepavali"],[11,25,"Christmas Day"]]
+  },
+  in:{
+    2025:[[0,26,"Republic Day"],[2,14,"Holi"],[3,10,"Id-ul-Fitr"],[3,14,"Ram Navami"],[3,18,"Good Friday"],[4,1,"Buddha Purnima"],[5,7,"Id-ul-Adha"],[7,15,"Independence Day"],[8,16,"Janmashtami"],[9,2,"Gandhi Jayanti"],[10,20,"Diwali"],[11,5,"Guru Nanak Jayanti"],[11,25,"Christmas Day"]],
+    2026:[[0,26,"Republic Day"],[2,4,"Holi"],[2,20,"Id-ul-Fitr"],[3,3,"Good Friday"],[3,14,"Dr. Ambedkar Jayanti"],[4,1,"Buddha Purnima"],[5,8,"Id-ul-Adha"],[7,15,"Independence Day"],[8,4,"Janmashtami"],[9,2,"Gandhi Jayanti"],[9,22,"Dussehra"],[10,8,"Diwali"],[11,24,"Guru Nanak Jayanti"],[11,25,"Christmas Day"]],
+    2027:[[0,26,"Republic Day"],[2,24,"Holi"],[2,1,"Id-ul-Fitr"],[3,16,"Good Friday"],[3,14,"Dr. Ambedkar Jayanti"],[4,21,"Buddha Purnima"],[4,29,"Id-ul-Adha"],[7,15,"Independence Day"],[8,24,"Janmashtami"],[9,2,"Gandhi Jayanti"],[9,10,"Dussehra"],[10,27,"Diwali"],[11,13,"Guru Nanak Jayanti"],[11,25,"Christmas Day"]]
+  }
+};
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+function normLoc(v){
+  if(!v)return null;
+  const s=String(v).trim().toUpperCase();
+  if(s.includes('PH')||s==='PHILIPPINES')return'ph';
+  if(s.includes('SG')||s==='SINGAPORE')return'sg';
+  if(s.includes('IN')||s==='INDIA')return'in';
+  return null;
+}
+
+// Build a Set of holiday date strings "YYYY-M-D" for a location+year
+function buildHolidaySet(loc,year){
+  const s=new Set();
+  (HOLIDAYS[loc]&&HOLIDAYS[loc][year]||[]).forEach(h=>{
+    const dow=new Date(year,h[0],h[1]).getDay();
+    if(dow>=1&&dow<=5) s.add(`${year}-${h[0]}-${h[1]}`);
+  });
+  return s;
+}
+
+// Count weekday leave days between two JS Dates, excluding holidays
+function countLeaveDays(d1,d2,loc){
+  if(!d1)return 0;
+  const start=new Date(d1); start.setHours(0,0,0,0);
+  const end=d2?new Date(d2):new Date(start); end.setHours(0,0,0,0);
+  if(isNaN(start.getTime()))return 0;
+  // Build holiday sets for all years in range
+  const holSets={};
+  let cur=new Date(start);
+  let days=0;
+  while(cur<=end){
+    const y=cur.getFullYear(),m=cur.getMonth(),d=cur.getDate();
+    if(!holSets[y]) holSets[y]=loc?buildHolidaySet(loc,y):new Set();
+    const dow=cur.getDay();
+    if(dow>=1&&dow<=5&&!holSets[y].has(`${y}-${m}-${d}`)) days++;
+    cur.setDate(cur.getDate()+1);
+  }
+  return days;
+}
+
+// Holiday hours for a location/month — India is optional
+function holidayHours(loc,year,month){
+  if(!loc)return 0;
+  // If India and toggle is off, return 0
+  if(loc==='in'){
+    const inHolEl=document.getElementById('chk-in-hol');
+    if(inHolEl&&!inHolEl.checked) return 0;
+  }
+  const lastDay=new Date(year,month+1,0).getDate();
+  const hols=(HOLIDAYS[loc][year]||[]).filter(h=>h[0]===month&&h[1]<=lastDay);
+  const wdHols=hols.filter(h=>{const dow=new Date(year,month,h[1]).getDay();return dow>=1&&dow<=5;});
+  return wdHols.length*(loc==='sg'?8:9);
+}
+
+// ── HOLIDAY PREVIEW ───────────────────────────────────────────────────────────
+function renderHolPreview(){
+  const month=parseInt(document.getElementById('selMonth').value);
+  const year=parseInt(document.getElementById('selYear').value);
+  const includeIndiaHol=document.getElementById('chk-in-hol')&&document.getElementById('chk-in-hol').checked;
+  const lbl={ph:'Philippines',sg:'Singapore',in:'India'};
+  const bcls={ph:'b-ph',sg:'b-sg',in:'b-in'};
+  const all=[];
+  ['ph','sg','in'].forEach(c=>{
+    (HOLIDAYS[c][year]||[]).filter(h=>h[0]===month).forEach(h=>{
+      const dow=new Date(year,month,h[1]).getDay();
+      all.push({c,day:h[1],name:h[2],wd:dow>=1&&dow<=5,p:h[1]<=15?'P1':'P2'});
+    });
+  });
+  all.sort((a,b)=>a.day-b.day);
+  const rows=all.map(h=>{
+    const isIndiaSkipped=h.c==='in'&&!includeIndiaHol;
+    const statusCell=!h.wd
+      ?`<span class="badge b-wknd">Weekend</span>`
+      :isIndiaSkipped
+        ?`<span class="badge b-wknd">Optional — not counted</span>`
+        :`<span class="badge ${h.p==='P1'?'b-p1':'b-p2'}">${h.p} — deducted</span>`;
+    return`<tr${isIndiaSkipped?' style="opacity:.5"':''}>
+      <td>${MONTHS[month].slice(0,3)} ${h.day}</td>
+      <td>${h.name}</td>
+      <td><span class="badge ${bcls[h.c]}">${lbl[h.c]}</span></td>
+      <td>${statusCell}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('hol-preview').innerHTML=`<table class="hol-table" style="margin-top:12px;">
+    <thead><tr><th>Date</th><th>Holiday</th><th>Country</th><th>Status</th></tr></thead>
+    <tbody>${rows||'<tr><td colspan="4" style="text-align:center;padding:14px;color:var(--muted)">No holidays this month</td></tr>'}</tbody>
+  </table>`;
+}
+
+// ── LOCATION FILTER ───────────────────────────────────────────────────────────
+function toggleLoc(l){
+  const on=document.getElementById('chk-'+l).checked;
+  const lbl=document.getElementById('lbl-'+l);
+  const cls={ph:'ph-on',sg:'sg-on',in:'in-on'}[l];
+  on?lbl.classList.add(cls):lbl.classList.remove(cls);
+  // Show/hide India holiday option
+  if(l==='in'){
+    const opt=document.getElementById('india-hol-option');
+    if(opt) opt.style.display=on?'flex':'none';
+  }
+}
+function selectedLocs(){
+  return['ph','sg','in'].filter(l=>document.getElementById('chk-'+l).checked);
+}
+
+// ── FILE UPLOAD ───────────────────────────────────────────────────────────────
+let wb1=null,wb2=null;
+function setupZone(dzId,fiId,slot){
+  const dz=document.getElementById(dzId);
+  document.getElementById(fiId).addEventListener('change',e=>{if(e.target.files[0])loadWb(e.target.files[0],slot);});
+  dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag');});
+  dz.addEventListener('dragleave',()=>dz.classList.remove('drag'));
+  dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag');if(e.dataTransfer.files[0])loadWb(e.dataTransfer.files[0],slot);});
+}
+function loadWb(file,slot){
+  if(!file.name.match(/\.(xlsx|xlsm|xls)$/i)){showStatus('Please upload Excel files only.','error');return;}
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const wb=XLSX.read(e.target.result,{type:'array',cellDates:true});
+      if(slot===1){wb1=wb;}else{wb2=wb;}
+      document.getElementById('icon'+slot).textContent='✅';
+      document.getElementById('name'+slot).textContent=file.name;
+      document.getElementById('sub'+slot).textContent=wb.SheetNames.length+' sheet(s) — '+wb.SheetNames.join(', ');
+      document.getElementById('dz'+slot).classList.add('loaded');
+      if(wb1&&wb2){document.getElementById('processBtn').disabled=false;showStatus('Both files ready. Click Process Files.','info');}
+    }catch(err){showStatus('Error reading file: '+err.message,'error');}
+  };
+  reader.readAsArrayBuffer(file);
+}
+setupZone('dz1','fi1',1);
+setupZone('dz2','fi2',2);
+
+function showStatus(msg,type){
+  const el=document.getElementById('statusBox');
+  el.textContent=msg;el.className='status-box '+type;el.style.display='block';
+}
+
+// ── PROCESS ───────────────────────────────────────────────────────────────────
+let outWb=null, procData=null;
+
+function processFiles(){
+  const month=parseInt(document.getElementById('selMonth').value);
+  const year=parseInt(document.getElementById('selYear').value);
+  const locs=selectedLocs();
+  if(!locs.length){showStatus('Select at least one location.','error');return;}
+
+  showStatus('Processing...','info');
+
+  // ── Read WBS Template sheet ─────────────────────────────────────
+  // Header is row index 5 (0-based), data starts row 6
+  const wsWBS = wb1.Sheets['Template'];
+  if(!wsWBS){showStatus('WBS file must have a "Template" sheet.','error');return;}
+  const wbsRaw = XLSX.utils.sheet_to_json(wsWBS,{header:1,defval:'',raw:false});
+
+  // Find header row by looking for 'Enterprise ID' and 'Public Holidays'
+  let wbsHdrIdx=-1;
+  for(let i=0;i<wbsRaw.length;i++){
+    const r=wbsRaw[i].map(c=>String(c||'').toLowerCase());
+    if(r.some(c=>c.includes('enterprise id'))&&r.some(c=>c.includes('public holiday'))){
+      wbsHdrIdx=i; break;
+    }
+  }
+  if(wbsHdrIdx<0){showStatus('Cannot find WBS header row (needs "Enterprise ID" and "Public Holidays" columns).','error');return;}
+
+  const wbsHdr=wbsRaw[wbsHdrIdx].map(c=>String(c||'').trim());
+  const C={
+    email: wbsHdr.findIndex(h=>h.toLowerCase()==='email'),
+    eid:   wbsHdr.findIndex(h=>h.toLowerCase().trim()==='enterprise id'),
+    wbs1:  wbsHdr.findIndex(h=>h.toLowerCase().includes('wbs 1')),
+    hrs1:  wbsHdr.findIndex(h=>h.toLowerCase().replace(/\s+/g,'').includes('hours1')||h.toLowerCase().replace(/\n/g,'').trim()==='hours 1'||h.toLowerCase().includes('hour')&&h.includes('1')),
+    wbs2:  wbsHdr.findIndex(h=>h.toLowerCase().includes('wbs 2')),
+    hrs2:  wbsHdr.findIndex(h=>h.toLowerCase().includes('hour')&&h.includes('2')),
+    wbs3:  wbsHdr.findIndex(h=>h.toLowerCase().includes('wbs 3')),
+    hrs3:  wbsHdr.findIndex(h=>h.toLowerCase().includes('hour')&&h.includes('3')),
+    leave: wbsHdr.findIndex(h=>h.toLowerCase().includes('leave')||h.toLowerCase().includes('training')),
+    ph:    wbsHdr.findIndex(h=>h.toLowerCase().includes('public holiday')),
+    total: wbsHdr.findIndex(h=>h.toLowerCase().includes('total hour')),
+    org:   wbsHdr.findIndex(h=>h.toLowerCase().includes('organization')||h.toLowerCase().includes('organisation')),
+    remarks:wbsHdr.findIndex(h=>h.toLowerCase().includes('remark')),
+    period:wbsHdr.findIndex(h=>h.toLowerCase().includes('period')),
+    lead:  wbsHdr.findIndex(h=>h.toLowerCase().trim()==='lead'),
+    dash:  wbsHdr.findIndex(h=>h==='-'),
+    concat:wbsHdr.findIndex(h=>h.toLowerCase().includes('concat')),
+    team:  wbsHdr.findIndex(h=>h.toLowerCase().trim()==='team'),
+    cat:   wbsHdr.findIndex(h=>h.toLowerCase().includes('category')),
+    loc:   wbsHdr.findIndex(h=>h.toLowerCase().trim()==='location'),
+    rolloff:wbsHdr.findIndex(h=>h.toLowerCase().includes('roll')||h.toLowerCase().includes('sc roll')),
+    check: wbsHdr.findIndex(h=>h.toLowerCase().includes('check')),
+  };
+  if(C.eid<0||C.ph<0){showStatus('WBS missing required columns: Enterprise ID or Public Holidays.','error');return;}
+  // Log detected columns for debugging
+  console.log('WBS columns detected:', C);
+  console.log('WBS headers:', wbsHdr);
+
+  // ── Read MyTE leave sheet ───────────────────────────────────────
+  // Sheet name: 'Leace Extract (1)', header row 1 (0-based)
+  const myteSheetName = wb2.SheetNames.find(n=>n.toLowerCase().includes('leac')||n.toLowerCase().includes('leave')||n.toLowerCase().includes('extract')) || wb2.SheetNames[0];
+  const wsMyTE = wb2.Sheets[myteSheetName];
+  const myteRaw = XLSX.utils.sheet_to_json(wsMyTE,{header:1,defval:'',cellDates:true,raw:false});
+
+  // Find MyTE header row
+  let myteHdrIdx=-1;
+  for(let i=0;i<myteRaw.length;i++){
+    const r=myteRaw[i].map(c=>String(c||'').toLowerCase());
+    if(r.some(c=>c.includes('enterprise id'))&&r.some(c=>c.includes('date'))){
+      myteHdrIdx=i; break;
+    }
+  }
+  if(myteHdrIdx<0){showStatus('Cannot find MyTE header row (needs "Enterprise ID" and date columns).','error');return;}
+
+  const myteHdr=myteRaw[myteHdrIdx].map(c=>String(c||'').trim());
+  const MC={
+    eid:   myteHdr.findIndex(h=>h.toLowerCase().includes('enterprise id')),
+    from:  myteHdr.findIndex(h=>h.toLowerCase().includes('date from')||h.toLowerCase().includes('datefrom')),
+    to:    myteHdr.findIndex(h=>h.toLowerCase().includes('date to')||h.toLowerCase().includes('dateto')),
+    type:  myteHdr.findIndex(h=>h.toLowerCase().includes('leave type')||h.toLowerCase().includes('type')),
+    loc:   myteHdr.findIndex(h=>h.toLowerCase()==='location'),
+  };
+  if(MC.eid<0||MC.from<0){showStatus('MyTE missing required columns: Enterprise ID or Date From.','error');return;}
+
+  // ── Build leave map from MyTE (sum days per EID, per month) ─────
+  // Key: eid (lowercase), value: {days, dates[], loc}
+  const leaveMap={};
+  for(let i=myteHdrIdx+1;i<myteRaw.length;i++){
+    const row=myteRaw[i];
+    const eid=String(row[MC.eid]||'').trim().toLowerCase();
+    if(!eid)continue;
+
+    // Parse dates — xlsx with cellDates:true + raw:false returns ISO strings
+    const parseDate=v=>{
+      if(!v||v==='')return null;
+      if(v instanceof Date)return v;
+      const d=new Date(v);
+      return isNaN(d.getTime())?null:d;
+    };
+    const d1=parseDate(row[MC.from]);
+    const d2=parseDate(row[MC.to])||d1;
+    if(!d1)continue;
+
+    const locRaw=MC.loc>=0?row[MC.loc]:'';
+    const loc=normLoc(locRaw);
+    const leaveType=MC.type>=0?String(row[MC.type]||'').trim():'';
+    const days=countLeaveDays(d1,d2,loc);
+
+    if(!leaveMap[eid]) leaveMap[eid]={days:0,dates:[],loc,locRaw};
+    leaveMap[eid].days+=days;
+
+    // Format each date row as "dd-mmm-yy - [Leave Type]", one entry per MyTE row
+    const fmtDDMmmYY=d=>{
+      if(!d)return'';
+      const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      const day=String(d.getDate()).padStart(2,'0');
+      const mon=months[d.getMonth()];
+      const yr=String(d.getFullYear()).slice(-2);
+      return `${day}-${mon}-${yr}`;
+    };
+    // If date range spans multiple days, show "dd-mmm-yy to dd-mmm-yy - [Type]"
+    let dateStr;
+    if(d2&&d2.getTime()!==d1.getTime()){
+      dateStr=`${fmtDDMmmYY(d1)} to ${fmtDDMmmYY(d2)}${leaveType?' - '+leaveType:''}`;
+    } else {
+      dateStr=`${fmtDDMmmYY(d1)}${leaveType?' - '+leaveType:''}`;
+    }
+    leaveMap[eid].dates.push(dateStr);
+  }
+
+  // ── Process WBS rows ────────────────────────────────────────────
+  // Add "Leave Days (MyTE)" header if not present
+  let leaveNewCol=wbsHdr.findIndex(h=>h==='Leave Hours (Leave Extract)');
+  if(leaveNewCol<0){
+    leaveNewCol=wbsHdr.length;
+    wbsRaw[wbsHdrIdx].push('Leave Hours (Leave Extract)');
+    wbsRaw[wbsHdrIdx].push('Leave Dates (MyTE)');
+  }
+  const leaveDateCol=leaveNewCol+1;
+
+  let updated=0,noLoc=0,filteredOut=0,matched=0;
+  const preview=[];
+
+  for(let i=wbsHdrIdx+1;i<wbsRaw.length;i++){
+    const row=wbsRaw[i];
+    const eid=String(row[C.eid]||'').trim().toLowerCase();
+    if(!eid)continue;
+
+    const locRaw=C.loc>=0?String(row[C.loc]||''):'';
+    const loc=normLoc(locRaw);
+    const leaveInfo=leaveMap[eid]||null;
+    if(leaveInfo)matched++;
+
+    // Leave hours from MyTE
+    const leaveDays=leaveInfo?leaveInfo.days:0;
+    const hrsPerDay=loc==='sg'?8:9;
+    const leaveHrs=leaveDays*hrsPerDay;
+    const leaveDates=leaveInfo?leaveInfo.dates.join('||'):'';
+
+    // Pad row to 24 columns to cover W & X
+    while(wbsRaw[i].length < 24) wbsRaw[i].push('');
+    // Write Leave Hours (col W = index 22)
+    wbsRaw[i][leaveNewCol] = leaveHrs > 0 ? leaveHrs : '';
+    // Write Leave Dates (col X = index 23) — each entry on its own line
+    wbsRaw[i][leaveDateCol] = leaveDates ? leaveDates.split('||').join('\n') : '';
+    // Update existing Leaves / Trainings col (I = index 8) with computed hours
+    if(C.leave>=0 && leaveDays>0) wbsRaw[i][C.leave] = leaveHrs;
+
+    const oldPH=String(row[C.ph]||'');
+
+    if(!loc){
+      noLoc++;
+      preview.push({
+        email:String(row[C.email]||''), eid,
+        wbs1:String(row[2]||''), hrs1:row[3]!==undefined?row[3]:'',
+        wbs2:String(row[4]||''), hrs2:row[5]!==undefined?row[5]:'',
+        wbs3:String(row[6]||''), hrs3:row[7]!==undefined?row[7]:'',
+        org:String(row[C.org>=0?C.org:'']||''), remarks:String(row[C.remarks>=0?C.remarks:'']||''),
+        period:String(row[C.period>=0?C.period:'']||''), team:String(row[C.team>=0?C.team:'']||''),
+        totalHrs:row[C.total>=0?C.total:''],
+        locRaw, oldPH, newPH:null, leaveHrs, leaveDates, matched:!!leaveInfo, status:'no-loc'
+      });
+      continue;
+    }
+    if(!locs.includes(loc)){
+      filteredOut++;
+      preview.push({
+        email:String(row[C.email]||''), eid,
+        wbs1:String(row[3>=0?2:'']||''), hrs1:row[3]!==undefined?row[3]:'',
+        wbs2:String(row[4>=0?4:'']||''), hrs2:row[5]!==undefined?row[5]:'',
+        wbs3:String(row[6>=0?6:'']||''), hrs3:row[7]!==undefined?row[7]:'',
+        org:String(row[C.org>=0?C.org:'']||''), remarks:String(row[C.remarks>=0?C.remarks:'']||''),
+        period:String(row[C.period>=0?C.period:'']||''), team:String(row[C.team>=0?C.team:'']||''),
+        totalHrs:row[C.total>=0?C.total:''],
+        locRaw, oldPH, newPH:null, leaveHrs, leaveDates, matched:!!leaveInfo, status:'filtered'
+      });
+      continue;
+    }
+
+    const newPH=holidayHours(loc,year,month);
+    wbsRaw[i][C.ph]=newPH>0?newPH:'';
+    updated++;
+    preview.push({
+      email: String(row[C.email]||''),
+      eid,
+      wbs1:  String(row[C.wbs1 >=0?C.wbs1:'']||''),
+      hrs1:  row[3]!==undefined?row[3]:'',
+      wbs2:  String(row[C.wbs2 >=0?C.wbs2:'']||''),
+      hrs2:  row[5]!==undefined?row[5]:'',
+      wbs3:  String(row[C.wbs3 >=0?C.wbs3:'']||''),
+      hrs3:  row[7]!==undefined?row[7]:'',
+      org:   String(row[C.org  >=0?C.org :'']||''),
+      remarks:String(row[C.remarks>=0?C.remarks:'']||''),
+      period:String(row[C.period>=0?C.period:'']||''),
+      team:  String(row[C.team >=0?C.team :'']||''),
+      totalHrs: row[C.total>=0?C.total:''],
+      locRaw, oldPH, newPH, leaveHrs, leaveDates, matched:!!leaveInfo, status:'updated'
+    });
+  }
+
+  // ── Write output — same 5 columns as preview table ────────────
+  outWb=XLSX.utils.book_new();
+  const outData=[
+    ['Enterprise ID','Location','Leave Hours (Leave Extract)','Public Holiday','Leave Date & Type'],
+    ...preview.map(r=>[
+      r.eid,
+      r.locRaw,
+      r.leaveHrs>0?r.leaveHrs:'',
+      r.status==='updated'&&r.newPH>0?r.newPH:'',
+      r.leaveDates?r.leaveDates.split('||').join('\n'):''
+    ])
+  ];
+  const newWs=XLSX.utils.aoa_to_sheet(outData);
+  XLSX.utils.book_append_sheet(outWb,newWs,'Template');
+
+  procData={preview,updated,noLoc,filteredOut,matched,month,year,total:preview.length};
+  renderPreview();
+}
+
+// ── PREVIEW ───────────────────────────────────────────────────────────────────
+function renderPreview(filterLoc='all'){
+  const {preview,updated,noLoc,filteredOut,matched,month,year,total}=procData;
+  document.getElementById('previewCard').style.display='block';
+  showStatus(`✅ Done! ${updated} rows updated · ${matched} MyTE matches · ${noLoc} no location · ${filteredOut} filtered`,'success');
+
+  document.getElementById('summaryGrid').innerHTML=`
+    <div class="stat"><div class="sl">Total Rows</div><div class="sv">${total}</div></div>
+    <div class="stat"><div class="sl">PH Updated</div><div class="sv" style="color:var(--green)">${updated}</div></div>
+    <div class="stat"><div class="sl">MyTE Matched</div><div class="sv" style="color:var(--purple)">${matched}</div></div>
+    <div class="stat"><div class="sl">Filtered Out</div><div class="sv" style="color:#2563eb">${filteredOut}</div></div>
+    <div class="stat"><div class="sl">No Location</div><div class="sv" style="color:#ca8a04">${noLoc}</div></div>
+    <div class="stat"><div class="sl">Period</div><div class="sv" style="font-size:14px;">${MONTHS[month].slice(0,3)} ${year}</div></div>`;
+
+  const lns={all:'All',ph:'🇵🇭 PH',sg:'🇸🇬 SG',in:'🇮🇳 IN'};
+  document.getElementById('filterBar').innerHTML=['all','ph','sg','in'].map(l=>
+    `<button class="filter-btn${filterLoc===l?' active':''}" onclick="renderPreview('${l}')">${lns[l]}</button>`
+  ).join('');
+
+  const rows=preview.filter(r=>filterLoc==='all'||normLoc(r.locRaw)===filterLoc).slice(0,150);
+  const tbody=rows.map(r=>{
+    const leaveHrsCell=r.leaveHrs>0?`<span class="td-leave">${r.leaveHrs}</span>`:'—';
+    const leaveDateLines=r.leaveDates?r.leaveDates.split('||').map(d=>`<div style="font-size:10px;color:var(--muted);margin-top:2px;">${d}</div>`).join(''):'—';
+    if(r.status==='updated')
+      return`<tr><td>${r.eid}</td><td>${r.locRaw}</td><td>${leaveHrsCell}</td><td class="td-updated">${r.newPH>0?r.newPH:'—'}</td><td class="td-dates">${leaveDateLines}</td></tr>`;
+    if(r.status==='filtered')
+      return`<tr style="opacity:.55"><td>${r.eid}</td><td style="color:#2563eb">${r.locRaw}</td><td>${leaveHrsCell}</td><td style="color:var(--muted)">Filtered</td><td class="td-dates">${leaveDateLines}</td></tr>`;
+    return`<tr><td>${r.eid}</td><td class="td-noloc">${r.locRaw||'(empty)'}</td><td>${leaveHrsCell}</td><td style="color:var(--muted)">No loc</td><td class="td-dates">${leaveDateLines}</td></tr>`;
+  }).join('');
+
+  document.getElementById('previewTable').innerHTML=`
+    <thead><tr><th>Enterprise ID</th><th>Location</th><th>Leave Hours (Leave Extract)</th><th>Public Holiday</th><th>Leave Date & Type</th></tr></thead>
+    <tbody>${tbody}</tbody>`;
+
+  document.getElementById('previewCard').scrollIntoView({behavior:'smooth'});
+}
+
+function downloadFile(){
+  const {month,year}=procData;
+  XLSX.writeFile(outWb,`WBS_Updated_${MONTHS[month]}_${year}.xlsx`);
+}
+
+function resetAll(){
+  wb1=null;wb2=null;outWb=null;procData=null;
+  [1,2].forEach(n=>{
+    document.getElementById('fi'+n).value='';
+    document.getElementById('icon'+n).textContent='📂';
+    document.getElementById('name'+n).textContent='Click or drag & drop';
+    document.getElementById('sub'+n).textContent=n===1?'WBS_Charging_App_Template.xlsx':'MyTE_Extract.xlsx';
+    document.getElementById('dz'+n).classList.remove('loaded');
+  });
+  document.getElementById('processBtn').disabled=true;
+  document.getElementById('statusBox').style.display='none';
+  document.getElementById('previewCard').style.display='none';
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+document.getElementById('selMonth').addEventListener('change',renderHolPreview);
+document.getElementById('selYear').addEventListener('change',renderHolPreview);
+document.getElementById('chk-in-hol').addEventListener('change',renderHolPreview);
+const now=new Date();
+document.getElementById('selMonth').value=now.getMonth();
+renderHolPreview();
+</script>
+
+
+</body></html>
